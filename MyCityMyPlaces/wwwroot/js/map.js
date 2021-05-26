@@ -93,17 +93,10 @@ function changeText(){
 }
 function addLocation(){
     let longlat = marker.getPosition();
-    let obj = longlat.toJSON();
+    let obj = longlat.toJSON()
     document.getElementById("lon").value = obj.lng.toString();
     document.getElementById("lat").value = obj.lat.toString();
     document.getElementById("shared").value = document.getElementById("shared").checked;
-    /*
-    new google.maps.Marker({
-        position: longlat,
-        map: map,
-    });
-    map.panTo(longlat);
-     */
 }
 
 $('#exampleModal').on('show.bs.modal', function (event) {
@@ -115,3 +108,18 @@ $('#exampleModal').on('show.bs.modal', function (event) {
     modal.find('.modal-title').text('My message ' + recipient)
     modal.find('.modal-body input').val(recipient)
 })
+
+function validate(){
+    var lng = document.getElementById("lon").value;
+    var lat = document.getElementById("lat").value
+    if (isNaN(lng)){
+        document.getElementById("errMessage").innerHTML = "Introduceti o valoare numerica pentru longitudine";
+        return false;
+    }
+    if (isNaN(lat)){
+        document.getElementById("errMessage").innerHTML = "Introduceti o valoare numerica pentru latitudine";
+        return false;
+    }else{
+        return true;
+    }
+}
