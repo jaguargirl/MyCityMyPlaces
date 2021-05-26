@@ -1,11 +1,4 @@
 # My City - My Places
-### Team name: ¬_¬
-
-### Team members:
- - Bobu Natalia
- - Cernei Liviu
- - Macari Cristian
- - Vlădulescu Alexandru
  
  ### Local build
  Install .NET 5 [https://dotnet.microsoft.com/download](https://dotnet.microsoft.com/download) \
