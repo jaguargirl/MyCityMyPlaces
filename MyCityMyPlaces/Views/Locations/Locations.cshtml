@@ -1,0 +1,379 @@
+@model User
+
+@{
+    ViewData["Title"] = "Locations";
+}
+<head>
+    <script src="~/js/locations.js"></script>
+    <link rel="stylesheet" href="~/css/locations.css" type="text/css">
+    <style>
+
+        table {
+            border-collapse: collapse;
+            border-radius: 5px;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+            font-family: "Quicksand", sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        th {
+            background: #009578;
+            color: #ffffff;
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 10px 20px;
+        }
+
+        tr:nth-child(even) {
+            background: #eeeeee;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.2.0/papaparse.min.js"></script>
+    <script type="text/javascript">
+        function editLocation(locationId) {
+            document.getElementById("locationId").value = locationId;
+            document.getElementById("shared").value = document.getElementById("shared").checked;
+        }
+
+        function changeText() {
+            var on = document.getElementById("shared").checked;
+            if (on !== true) {
+                document.getElementById("cktxt").innerHTML = "No";
+            } else {
+                document.getElementById("cktxt").innerText = "Yes";
+            }
+        }
+
+        $('#editModal').on('show.bs.modal', function (event) {
+            let button = $(event.relatedTarget) // Button that triggered the modal
+            let recipient = button.data('whatever') // Extract info from data-* attributes
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            let modal = $(this)
+            modal.find('.modal-title').text('My message ' + recipient)
+            modal.find('.modal-body input').val(recipient)
+        })
+    </script>
+</head>
+<body>
+    <div class="text-center">
+        <h1>Favourite locations</h1>
+    </div>
+    <br>
+    <h3>Private locations:</h3>
+    <table id="dataTableP" class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Locations.First().Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Locations.First().Comment)
+                </th>
+                <th>
+                    @Html.DisplayName("Coordinates")
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+            </tr>
+            @foreach (var item in Model.Locations.Where(loc => !loc.Shared))
+            {
+                <tr>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Comment)
+                    </td>
+                    <td>
+                        @Html.Raw(item.Lat.ToString() + ", " + item.Lon.ToString())
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" class="btn dropdown-toggle" data-toggle="dropdown">
+                            </button>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a onclick="editLocation(@item.LocationId)" data-toggle="modal" data-target="#editModal">Edit</a></li>
+                                <li class="divider"></li>
+                                <li><a asp-action="RemoveLocation" asp-route-locationId="@item.LocationId">Remove</a></li>
+                                <li class="divider"></li>
+                                <li><a asp-action="ChangeShared" asp-route-locationId="@item.LocationId" asp-route-shared=true>Add to Share</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div>
+        <button id="btnExportToCsvP" type="button" class="btn btn-primary margin">Export to CSV Private Location</button>
+    </div>
+    <br>
+    <h3>Shared locations:</h3>
+    <table id="dataTableS" class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Locations.First().Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Locations.First().Comment)
+                </th>
+                <th>
+                    @Html.DisplayName("Coordinates")
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var item in Model.Locations.Where(loc => loc.Shared))
+            {
+                <tr>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Comment)
+                    </td>
+                    <td>
+                        @Html.Raw(item.Lat.ToString() + ", " + item.Lon.ToString())
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" class="btn dropdown-toggle" data-toggle="dropdown">
+                            </button>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a onclick="editLocation(@item.LocationId)" data-toggle="modal" data-target="#editModal">Edit</a></li>
+                                <li class="divider"></li>
+                                <li><a asp-action="RemoveLocation" asp-route-locationId="@item.LocationId">Remove</a></li>
+                                <li class="divider"></li>
+                                <li><a asp-action="ChangeShared" asp-route-locationId="@item.LocationId" asp-route-shared=false>Remove from Share</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div>
+        <button id="btnExportToCsvS" type="button" class="btn btn-primary margin">Export to CSV Shared Location</button>
+    </div>
+    <br>
+    <h3>Family Members shared locations:</h3>
+    <table>
+        <thead>
+
+            <tr>
+                <th></th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Locations.First().Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Locations.First().Comment)
+                </th>
+                <th>
+                    @Html.DisplayName("Coordinates")
+                </th>
+                <th>
+                    @Html.DisplayName("Created by")
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var familyMember in Model.FamilyRequestsOut.Where(fro => Model.FamilyRequestsIn.Contains(fro)))
+            {
+                @foreach (var location in familyMember.Locations.Where(l => l.Shared))
+                {
+                    <tr>
+                        <td></td>
+                        <td>
+                            @Html.DisplayFor(modelItem => location.Name)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => location.Comment)
+                        </td>
+                        <td>
+                            @Html.Raw(location.Lat.ToString() + ", " + location.Lon.ToString())
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => familyMember.Name)
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn dropdown-toggle" data-toggle="dropdown">
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li>
+                                        <a asp-action="AddNewLocation" asp-route-lon="@location.Lon"
+                                           asp-route-lat="@location.Lat" asp-route-name="@location.Name"
+                                           asp-route-comment="@location.Comment" asp-route-userEmail="@Model.Email">Add to myself</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+
+    <script>
+        const dataTableP = document.getElementById("dataTableP");
+        const dataTableS = document.getElementById("dataTableS");
+        const btnExportToCsvP = document.getElementById("btnExportToCsvP");
+        const btnExportToCsvS = document.getElementById("btnExportToCsvS");
+        btnExportToCsvP.addEventListener("click", () => {
+            const exporter = new TableCSVExporter(dataTableP);
+            const csvOutput = exporter.convertToCSV();
+            const csvBlob = new Blob([csvOutput], { type: "text/csv" });
+            const blobUrl = URL.createObjectURL(csvBlob);
+            const anchorElement = document.createElement("a");
+
+            anchorElement.href = blobUrl;
+            anchorElement.download = "table-export.csv";
+            anchorElement.click();
+
+            setTimeout(() => {
+                URL.revokeObjectURL(blobUrl);
+            }, 500);
+        });
+        btnExportToCsvS.addEventListener("click", () => {
+            const exporter = new TableCSVExporter(dataTableS);
+            const csvOutput = exporter.convertToCSV();
+            const csvBlob = new Blob([csvOutput], { type: "text/csv" });
+            const blobUrl = URL.createObjectURL(csvBlob);
+            const anchorElement = document.createElement("a");
+
+            anchorElement.href = blobUrl;
+            anchorElement.download = "table-export.csv";
+            anchorElement.click();
+
+            setTimeout(() => {
+                URL.revokeObjectURL(blobUrl);
+            }, 500);
+        });
+    </script>
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Edit Location</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form asp-action="EditLocation" method="post">
+                        <div class="form-group">
+                            <input type="hidden" class="form-control" name="LocationId" id="locationId">
+                        </div>
+                        <div class="form-group">
+                            <label class="col-form-label">Name</label>
+                            <input type="text" class="form-control" name="Name">
+                        </div>
+                        <div class="form-group">
+                            <label class="col-form-label">Comment</label>
+                            <input type="text" class="form-control" name="Comment">
+                        </div>
+                        <div class="form-group">
+                            <label class="col-form-label">Share this location with Family?</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" onclick="changeText()" type="checkbox" id="shared" name="Shared">
+                            <label class="form-check-label" for="shared" id="cktxt">No</label>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Edit location</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div><br>
+    <h2>Vizulizare date importate: </h2>
+          <div class="container">
+              <div class="row">
+                  <h5 >Uploud</h5> <input type="file" id="csvFileInput" class="btn btn-primary margin">
+              </div>
+          </div>
+    <table id="csvRoot"></table>
+    <script>
+        class TableCsv {
+  
+  constructor(root) {
+    this.root = root;
+  }
+
+
+  update(data, headerColumns = []) {
+    this.clear();
+    this.setHeader(headerColumns);
+    this.setBody(data);
+  }
+
+
+  clear() {
+    this.root.innerHTML = "";
+  }
+
+
+  setHeader(headerColumns) {
+    this.root.insertAdjacentHTML(
+      "afterbegin",
+      `
+            <thead>
+                <tr>
+                    ${headerColumns.map((text) => `<th>${text}</th>`).join("")}
+                </tr>
+            </thead>
+        `
+    );
+  }
+
+  
+  setBody(data) {
+    const rowsHtml = data.map((row) => {
+      return `
+                <tr>
+                    ${row.map((text) => `<td>${text}</td>`).join("")}
+                </tr>
+            `;
+    });
+
+    this.root.insertAdjacentHTML(
+      "beforeend",
+      `
+            <tbody>
+                ${rowsHtml.join("")}
+            </tbody>
+        `
+    );
+  }
+}
+
+const tableRoot = document.querySelector("#csvRoot");
+const csvFileInput = document.querySelector("#csvFileInput");
+const tableCsv = new TableCsv(tableRoot);
+
+csvFileInput.addEventListener("change", (e) => {
+  Papa.parse(csvFileInput.files[0], {
+    delimiter: ",",
+    skipEmptyLines: true,
+    complete: (results) => {
+      tableCsv.update(results.data.slice(1), results.data[0]);
+    }
+  });
+});</script>
+</body>
+
+

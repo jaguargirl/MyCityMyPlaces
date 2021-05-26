@@ -1,0 +1,208 @@
+﻿@model StatisticsViewModel
+
+@{
+    ViewData["Title"] = "Statistics";
+}
+
+<head>
+    <link rel="stylesheet" href="~/css/statistics.css" type="text/css">
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        function haversine_distance(lat1, lon1, lat2, lon2) {
+            var R = 6371.0710; // Radius of the Earth in miles
+            var rlat1 = lat1 * (Math.PI/180); // Convert degrees to radians
+            var rlat2 = lat2 * (Math.PI/180); // Convert degrees to radians
+            var difflat = rlat2-rlat1; // Radian difference (latitudes)
+            var difflon = (lon2-lon1) * (Math.PI/180); // Radian difference (longitudes)
+        
+            var d = 2 * R * Math.asin(Math.sqrt(Math.sin(difflat/2)*Math.sin(difflat/2)+Math.cos(rlat1)*Math.cos(rlat2)*Math.sin(difflon/2)*Math.sin(difflon/2)));
+            return d;
+        }
+    </script>
+</head>
+
+<div class="text-center">
+    <p>Statistics</p>
+</div>
+
+<div class="subText">
+    <h5>Your statistics:</h5>
+</div>
+
+<table>
+    <tbody>
+    <tr>
+        <td class="first_column">Number of private locations</td>
+        <td>
+            @Html.Raw(Model.CurrentUser.Locations.Where(l => !l.Shared).Count().ToString())
+        </td>
+    </tr>
+    <tr>
+        <td class="first_column">Number of shared locations</td>
+        <td>
+            @Html.Raw(Model.CurrentUser.Locations.Where(l => l.Shared).Count().ToString())
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="subText">
+    <p></p>
+    <h5>Family statistics:</h5>
+</div>
+<table>
+    <thead>
+    <tr>
+        <td></td>
+        <td class="first_column"></td>
+        <td>
+            @Html.DisplayName("Number of private locations")
+        </td>
+        <td>
+            @Html.DisplayName("Number of shared locations")
+        </td>
+        <td>
+            @Html.DisplayName("Number of locations you have in common")
+        </td>
+    </tr>
+    </thead>
+    @foreach (var item in Model.CurrentUser.FamilyRequestsOut.Where(fro => Model.CurrentUser.FamilyRequestsIn.Contains(fro)))
+    {
+        <tr>
+            <td></td>
+            <td class="first_column">
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.Raw(item.Locations.Where(l => !l.Shared).Count())
+            </td>
+            <td>
+                @Html.Raw(item.Locations.Where(l => l.Shared).Count())
+            </td>
+            <td>
+                @{
+                    var nrOfLocations = item.Locations.Sum(
+                        memLoc => Model.CurrentUser.Locations.Count(
+                            loc => loc.Lon == memLoc.Lon && loc.Lat == memLoc.Lat &&
+                                   loc.LocationId != memLoc.LocationId));
+                    @Html.Raw(nrOfLocations);
+                }
+            </td>
+        </tr>
+    }
+</table>
+
+<div class="subText">
+    <p></p>
+    <h5>Number of family shared locations close to yours:</h5>
+</div>
+<p id="graphic"></p>
+<script>
+    let data = [];
+    let temp = [];
+    let loc = {"location_name": "", "coords":{"lat":0, "lon":0}, "nr_of_loc": 0, "neigh_loc":[]};
+    let index = 0;
+     @foreach (var location in Model.CurrentUser.Locations)
+     {
+         @:loc.location_name = "@location.Name";
+         @:loc.coords.lat = @location.Lat;
+         @:loc.coords.lon = @location.Lon;
+         @:data.push(loc);
+         @foreach (var neigh in @Model.CurrentUser.FamilyRequestsOut.Where(fro => Model.CurrentUser.FamilyRequestsIn.Contains(fro)))
+         {
+             @foreach (var nLocation in neigh.Locations.Where(loc => loc.Shared))
+             {
+                 if ((location.Lat != nLocation.Lat || location.Lon != nLocation.Lon) && location.LocationId != nLocation.LocationId)
+                 {
+                     @:temp.push([@nLocation.Lat, @nLocation.Lon]);
+                 }
+             }
+         }
+
+         @:data[index]["neigh_loc"] = temp;
+         @:index++;
+         @:temp = [];
+         @:loc = {"location_name": "", "coords":{"lat":0, "lon":0}, "nr_of_loc": 0, "neigh_loc":[]};
+     }
+     
+     for (var i = 0; i < data.length; i++)
+     {
+         for (var j = 0; j < data[i].neigh_loc.length; j++) 
+         {
+             if (haversine_distance(data[i].coords.lat, data[i].coords.lon, data[i].neigh_loc[j][0], data[i].neigh_loc[j][1]) < 4)
+             {
+                 data[i].nr_of_loc = data[i].nr_of_loc + 1;
+             }
+         }
+     }
+     var margin = {
+                 top: 15,
+                 right: 25,
+                 bottom: 15,
+                 left: 150
+             };
+
+     var width = 960 - margin.left - margin.right,
+         height = 500 - margin.top - margin.bottom;
+
+     var svg = d3.select("#graphic").append("svg")
+         .attr("width", width + margin.left + margin.right)
+         .attr("height", height + margin.top + margin.bottom)
+         .append("g")
+         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+     var x = d3.scale.linear()
+         .range([0, width])
+         .domain([0, d3.max(data, function (d) {
+             return d.nr_of_loc;
+         })]);
+
+     var y = d3.scale.ordinal()
+         .rangeRoundBands([height, 0], .4)
+         .domain(data.map(function (d) {
+             return d.location_name;
+         }));
+
+     //make y axis to show bar names
+     var yAxis = d3.svg.axis()
+         .scale(y)
+         //no tick marks
+         .tickSize(0)
+         .orient("left");
+
+     var gy = svg.append("g")
+         .attr("class", "y axis")
+         .call(yAxis)
+
+     var bars = svg.selectAll(".bar")
+         .data(data)
+         .enter()
+         .append("g")
+
+     //append rects
+     bars.append("rect")
+         .attr("class", "bar")
+         .attr("y", function (d) {
+             return y(d.location_name);
+         })
+         .attr("height", y.rangeBand())
+         .attr("x", 0)
+         .attr("width", function (d) {
+             return x(d.nr_of_loc);
+         });
+
+     //add a value label to the right of each bar
+     bars.append("text")
+         .attr("class", "label")
+         //y position of the label is halfway down the bar
+         .attr("y", function (d) {
+             return y(d.location_name) + y.rangeBand() / 2 + 4;
+         })
+         //x position is 3 pixels to the right of the bar
+         .attr("x", function (d) {
+             return x(d.nr_of_loc) + 3;
+         })
+         .text(function (d) {
+             return d.nr_of_loc;
+         });
+</script>

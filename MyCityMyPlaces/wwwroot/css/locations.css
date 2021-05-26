@@ -1,0 +1,47 @@
+﻿
+td, th {
+    padding: 10px;
+    position: relative;
+}
+
+body:not(.nohover) tbody tr:hover {
+    background-color: #e5e5e5;
+}
+
+/* Focus stuff for mobile */
+td:focus::before,
+tbody th:focus::before {
+    background-color: lightblue;
+    height: 100%;
+    left: -5000px;
+    position: absolute;
+    width: 10000px;
+    z-index: -1;
+}
+
+.btn-group {
+    white-space: nowrap;
+}
+.btn-group .btn {
+    float: none;
+    display: inline-block;
+}
+.btn + .dropdown-toggle {
+    margin-left: -4px;
+}
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 5000;
+}
+.dropdown-menu a {
+    color: black;
+    padding: 10px 12px;
+    text-decoration: none;
+    display: block;
+}
+.dropdown-menu a:hover {
+    background-color: #e5e5e5;
+}

@@ -1,0 +1,93 @@
+@model User
+
+
+@{
+    ViewData["Title"] = "Family";
+}
+
+<div class="text-center">
+    <p>Family members</p>
+</div>
+
+<form action="/Family/AddFamilyMember" method="post">
+    <label>Email</label>
+    <input type="text" name="Email"/>
+    <input type="submit" name="submit"/>
+</form>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th></th>
+        <th>
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Email)
+        </th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>
+            <b>Current members:</b>
+        </td>
+    </tr>
+    @foreach (var item in Model.FamilyRequestsOut.Where(fro => Model.FamilyRequestsIn.Contains(fro)))
+    {
+        <tr>
+            <td></td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                <a asp-action="Cancel" asp-route-id="@item.Email">Remove</a>
+            </td>
+        </tr>
+    }
+    <tr>
+        <td>
+            <b>Sent requests:</b>
+        </td>
+    </tr>
+    @foreach (var item in Model.FamilyRequestsOut.Where(fro => !Model.FamilyRequestsIn.Contains(fro)))
+    {
+        <tr>
+            <td></td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                <a asp-action="Cancel" asp-route-id="@item.Email">Cancel</a>
+            </td>
+        </tr>
+    }
+    <tr>
+        <td>
+            <b>Received requests:</b>
+        </td>
+    </tr>
+    @foreach (var item in Model.FamilyRequestsIn.Where(fri => !Model.FamilyRequestsOut.Contains(fri)))
+    {
+        <tr>
+            <td></td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                <a asp-action="Accept" asp-route-id="@item.Email">Accept</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

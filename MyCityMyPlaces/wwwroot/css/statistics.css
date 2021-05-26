@@ -1,0 +1,36 @@
+﻿td, th {
+    padding: 10px;
+    position: relative;
+    text-align: center;
+}
+
+body:not(.nohover) tbody tr:hover {
+    background-color: #e5e5e5;
+}
+
+.first_column {
+    border-right: solid 1px gray;
+    text-align: left;
+}
+.bar {
+    fill: #5f89ad;
+}
+
+.axis {
+    font-size: 15px;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    display: none;
+}
+
+.label {
+    font-size: 15px;
+}
+
+#map {
+    height: 400px;
+    width: 100%;
+}

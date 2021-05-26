@@ -1,0 +1,79 @@
+@{
+    ViewData["Title"] = "Map";
+}
+<head>
+  <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC6eECeiYgvphaj6kgfRUm-mAQMuCyi0wg&callback&callback=initMap&libraries=&v=weekly" defer></script>
+      <style type="text/css">
+        #map {
+          height: 400px;
+          width: 100%;
+        }
+      </style>
+      <script src="~/js/map.js"></script>
+</head>
+<body>
+  <h3>My Google Maps Demo</h3>
+  <div class="container">
+      <div class="row">
+        <div class="col">
+          <div id="map"></div>
+        </div>
+        <div class="col-md-auto">
+          <div>
+            <button type="button" class="btn btn-primary margin" onclick="addLocation()" data-toggle="modal" data-target="#exampleModal">Add to Favourite</button>
+          </div>
+          <div>
+            <form action="/Map/GetLocations" method="get">
+              <button type="submit" class="btn btn-primary margin">Show your Favourites</button>
+            </form>
+          </div>
+          <p id="locations" hidden>@TempData["coord"]</p>
+          <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Add new Location</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form action="/Map/AddLocation" method="post">
+                    <div class="form-group">
+                      <label class="col-form-label" >Lonitude</label>
+                      <input type="text" class="form-control" name="Lon" id="lon">
+                    </div>
+                    <div class="form-group">
+                      <label class="col-form-label">Latitude</label>
+                      <input type="text" class="form-control" name="Lat" id="lat">
+                      </div>
+                    <div class="form-group">
+                      <label class="col-form-label">Name</label>
+                      <input type="text" class="form-control" name="Name">
+                    </div>
+                    <div class="form-group">
+                      <label class="col-form-label">Comment</label>
+                      <input type="text" class="form-control" name="Comment">
+                    </div>
+                    <div class="form-group">
+                      <label class="col-form-label" >Share this location with Family?</label>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" onclick="changeText()" type="checkbox" id="shared" name="Shared">
+                      <label class="form-check-label" for="shared" id="cktxt">No</label>
+                      </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      <button type="submit" class="btn btn-primary">Add location</button>
+                      </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</body>
+
